@@ -1,7 +1,7 @@
 ---
 title: "R code for testing for independence"
 author: "Dr. Hossain Pezeshki"
-data: '2015-06-19'
+date: '2015-07-03'
 css: style.css
 bibliography: bibliography.bib
 csl: ieee-transactions-on-information-theory.csl
@@ -10,7 +10,10 @@ csl: ieee-transactions-on-information-theory.csl
 # Prompt #
 Bratley et al. on page 220 of @guidetosim describe what they call a "_permutation test_" for verifying independence
 of a uniform pseudo-random sequence. This method is actually applicable to any continuous distribution,
-not just uniform. We describe the procedure and implement our version of it in R @theRlang.
+not just the uniform distribution.
+We describe the procedure and implement our version of it in R @theRlang.
+We also compare the performance of the test versus the better known "_Ljung-Box Test_" (see
+for example pages 206ff of @ruppertfinance).
 
 # Description #
 Let $\underline{x} = [x_1, x_2,\ldots, x_l]$ be independently sampled from a continuous distribution 
@@ -36,7 +39,7 @@ each of the $L$ distinct permutations is observed, is multinomially distributed 
 $$
 
 Equation (@disth0) is the likelihood of the observed permutations under the null hypothesis
-$$ \boxed{H_0\; :\;\; \underline{x}\;\mbox{is an iid sample from a continuous distribution}}$$
+$$ {H_0\; :\;\; \underline{x}\;\mbox{is an iid sample from a continuous distribution}}$$
 
 However, the maximum likelihood corresponding to observation $[k_1,\ldots,k_L]$ 
 for the multinomial distribution is easily seen to be
@@ -58,7 +61,7 @@ $$
 
 Thus we can reject $H_0$ if $\lambda$ exceeds the $95^{th}$ quantile of $\chi_{(L-1)}^2$.
 
-## Choosing $l$ ##
+## Choosing the size of subsamples $l$ ##
 If we were estimating the probability $p$ of observing a particular permutation, then we would
 want the
 relative error (the ratio of the standard deviation to the mean) of our estimate to be less than $1/2$;
@@ -147,14 +150,13 @@ isIID <- function (x, CL=0.95)  {
 }
 ```
 
-We can now test this function.
+Now we test the `isIID` function.
 
 ```r
 rm (list = ls())
 source ("./isIID.R")
 ```
-First we simulate a non-uniform IID sequence.
-
+## First test: an IID sequence ##
 
 ```r
 set.seed (329588)
@@ -183,13 +185,32 @@ sprintf ("p-value %.4f", ans$p.val)
 ```
 ## [1] "p-value 0.3479"
 ```
-No evidence against independence was found.
+Our permutation test does not reject $H_0$ for sequence $x_1$. Applying the Ljung-Box test
+we get:
 
-Now make half the numbers non-random.
+```r
+print (Box.test (x1, lag=1, type='Ljung'))
+```
+
+```
+## 
+## 	Box-Ljung test
+## 
+## data:  x1
+## X-squared = 0.07478635378, df = 1, p-value = 0.78449123
+```
+Ljung-Box does not reject $H_0$ for sequence $x_1$ either.
+
+## Second test: half of the data is non-random ##
+We create sequence $x_2$ by setting the first half of $x_1$ to $2$.
 
 ```r
 x2 <- x1
 x2[1:(N/2)] <- rep(2,(N/2))
+```
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
+
+```r
 ans <- isIID (x=x2)
 if (ans$reject) {
   sprintf ("The test statistic is = %.4f, the %.0f%% critical value is %.4f, reject", 
@@ -211,9 +232,30 @@ sprintf ("p-value %.4f", ans$p.val)
 ```
 ## [1] "p-value 0.0000"
 ```
-This is rejected as it should be.
+The permutation test rejects $H_0$ for $x_2$ as it should. 
+However, the Ljung-Box test fails to reject.
 
-Next we introduce dependence by AR filtering using the [signal package](http://r-forge.r-project.org/projects/signal).
+```r
+print (Box.test (x2, lag=1, type='Ljung'))
+```
+
+```
+## 
+## 	Box-Ljung test
+## 
+## data:  x2
+## X-squared = 0.2186315071, df = 1, p-value = 0.640084625
+```
+## Test 3: introducing dependence by filtering ##
+Using the [signal package](http://r-forge.r-project.org/projects/signal)
+we create sequence $x_3$ by putting $x_1$ through a 
+a low-pass single-pole filter so that $x_3$ is AR(1), that is
+$$ x_3(n) = (1-c)\,y(n-1) + c\,x_1(n)
+\;\;\;\mbox{where}\;\;\; 0 < c <1
+ $$
+Smaller values of $c$ cause greater dependence on history.
+Both tests reject $H_0$ for $x_3$.
+
 
 ```r
 library (signal)
@@ -227,9 +269,6 @@ library (signal)
 ## 
 ##     filter, poly
 ```
-We use the simple first order low-pass filter 
-$$ y(n) = (1-c)\,y(n-1) + c\,x(n) $$
-For $0 < c <1$, smaller values of $c$ cause greater dependence on history.
 
 ```r
 c <- 0.1
@@ -256,7 +295,23 @@ sprintf ("p-value %.4f", ans$p.val)
 ```
 ## [1] "p-value 0.0089"
 ```
-This is rejected; however, if we increase $c$, thus decreasing dependence, the test incorrectly fails to reject.
+
+```r
+print (Box.test (x3, lag=1, type='Ljung'))
+```
+
+```
+## 
+## 	Box-Ljung test
+## 
+## data:  x3
+## X-squared = 153.345845, df = 1, p-value < 2.220446e-16
+```
+
+## Test 4: AR data with less dependence ##
+We increase $c$, thus decreasing the history and dependence;
+ the permutation test incorrectly fails to reject. However the Ljung-Box test
+succeeds at rejecting.
 
 ```r
 c <- 0.2
@@ -283,5 +338,22 @@ sprintf ("p-value %.4f", ans$p.val)
 ```
 ## [1] "p-value 0.1466"
 ```
+
+```r
+print (Box.test (x4, lag=1, type='Ljung'))
+```
+
+```
+## 
+## 	Box-Ljung test
+## 
+## data:  x4
+## X-squared = 118.7751034, df = 1, p-value < 2.220446e-16
+```
+
+# Conclusion #
+We have identified scenarios where one test succeeds and the other fails.
+One can use the present permutation test and the Ljung-Box test together by simply rejecting
+the null hypothesis if either test rejects it.
 
 # References #

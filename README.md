@@ -1,13 +1,14 @@
 ## Overview
 We implement a test of independence suggested by Bratley, Fox and Scharge
-"_A Guid to Simulation_", 2nd edition.
+"_A Guid to Simulation_", 2nd edition. The test is compared with the Ljung-Box
+test.
 
 ## R code
 The accompanying iIID.R is standalone code that can be called
 by other functions, and testisIID.R illustrates the use of the former.
 
-## Copyright notice 
-Copyright (C) 2015 by Dr. Hossain Pezeshki June 19th, 2015
+## Notice 
+Copyright (C) 2015 by Dr. Hossain Pezeshki July 3rd, 2015
 
 [My LinkedIn profile](https://ca.linkedin.com/pub/hossain-pezeshki/0/778/395)
 
