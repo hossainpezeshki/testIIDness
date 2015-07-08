@@ -7,6 +7,8 @@ bibliography: bibliography.bib
 csl: ieee-transactions-on-information-theory.csl
 ---
 
+***
+
 # Prompt #
 Bratley et al. on page 220 of @guidetosim describe what they call a "_permutation test_" for verifying independence
 of a uniform pseudo-random sequence. This method is actually applicable to any continuous distribution,
@@ -14,6 +16,8 @@ not just the uniform distribution.
 We describe the procedure and implement our version of it in R @theRlang.
 We also compare the performance of the test versus the better known "_Ljung-Box Test_" (see
 for example pages 206ff of @ruppertfinance).
+
+***
 
 # Description #
 Let $\underline{x} = [x_1, x_2,\ldots, x_l]$ be independently sampled from a continuous distribution 
@@ -76,19 +80,14 @@ Substituting $p = (l\,!)^{-1}$ and $B={N}/{l}$ into expression (@relerr) we obta
 We found that we have the best power against the alternative when $l$ is the largest
 number satisfying inequality (@bestl). 
 
+***
+
 # R implementation #
 The function `isIID` implements the procedure discussed above.
 
 
 ```r
 require (gtools)
-```
-
-```
-## Loading required package: gtools
-```
-
-```r
 isIID <- function (x, CL=0.95)  {
   bestPerBin <- function (N) {
     s <- 1
@@ -107,8 +106,7 @@ isIID <- function (x, CL=0.95)  {
   ans <- bestPerBin (N=N)
   
   lu <- defmacro (j, b, expr={
-    l = b*(j-1)+1; u = b*j;
-    c(l:u)
+    c((b*(j-1)+1):(b*j));
   })
   
   counts <- list()
@@ -259,18 +257,6 @@ Both tests reject $H_0$ for $x_3$.
 
 ```r
 library (signal)
-```
-
-```
-## 
-## Attaching package: 'signal'
-## 
-## The following objects are masked from 'package:stats':
-## 
-##     filter, poly
-```
-
-```r
 c <- 0.1
 x3 <- as.vector (filter (filt=c(c), a=c(1,c-1), x=x1))
 
@@ -350,10 +336,11 @@ print (Box.test (x4, lag=1, type='Ljung'))
 ## data:  x4
 ## X-squared = 118.7751034, df = 1, p-value < 2.220446e-16
 ```
-
 # Conclusion #
 We have identified scenarios where one test succeeds and the other fails.
 One can use the present permutation test and the Ljung-Box test together by simply rejecting
 the null hypothesis if either test rejects it.
+
+***
 
 # References #

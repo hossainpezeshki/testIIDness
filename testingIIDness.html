@@ -69,9 +69,11 @@ img {
 </div>
 
 
+<hr />
 <div id="prompt" class="section level1">
 <h1>Prompt</h1>
 <p>Bratley et al. on page 220 of <span class="citation">[Reference 1]</span> describe what they call a “<em>permutation test</em>” for verifying independence of a uniform pseudo-random sequence. This method is actually applicable to any continuous distribution, not just the uniform distribution. We describe the procedure and implement our version of it in R <span class="citation">[Reference 2]</span>. We also compare the performance of the test versus the better known “<em>Ljung-Box Test</em>” (see for example pages 206ff of <span class="citation">[Reference 3]</span>).</p>
+<hr />
 </div>
 <div id="description" class="section level1">
 <h1>Description</h1>
@@ -108,14 +110,14 @@ img {
 <li><span class="math">\[ 4\,\left(l\,! - 1\right)\,l &lt; n\]</span></li>
 </ol>
 <p>We found that we have the best power against the alternative when <span class="math">\(l\)</span> is the largest number satisfying inequality (4).</p>
+<hr />
 </div>
 </div>
 <div id="r-implementation" class="section level1">
 <h1>R implementation</h1>
 <p>The function <code>isIID</code> implements the procedure discussed above.</p>
-<pre class="r"><code>require (gtools)</code></pre>
-<pre><code>## Loading required package: gtools</code></pre>
-<pre class="r"><code>isIID &lt;- function (x, CL=0.95)  {
+<pre class="r"><code>require (gtools)
+isIID &lt;- function (x, CL=0.95)  {
   bestPerBin &lt;- function (N) {
     s &lt;- 1
     while (s * (4 * factorial (s) - 4) &lt; N) s &lt;- s+1
@@ -133,8 +135,7 @@ img {
   ans &lt;- bestPerBin (N=N)
   
   lu &lt;- defmacro (j, b, expr={
-    l = b*(j-1)+1; u = b*j;
-    c(l:u)
+    c((b*(j-1)+1):(b*j));
   })
   
   counts &lt;- list()
@@ -234,14 +235,8 @@ if (ans$reject) {
 <p>Using the <a href="http://r-forge.r-project.org/projects/signal">signal package</a> we create sequence <span class="math">\(x_3\)</span> by putting <span class="math">\(x_1\)</span> through a a low-pass single-pole filter so that <span class="math">\(x_3\)</span> is AR(1), that is <span class="math">\[ x_3(n) = (1-c)\,y(n-1) + c\,x_1(n)
 \;\;\;\mbox{where}\;\;\; 0 &lt; c &lt;1
  \]</span> Smaller values of <span class="math">\(c\)</span> cause greater dependence on history. Both tests reject <span class="math">\(H_0\)</span> for <span class="math">\(x_3\)</span>.</p>
-<pre class="r"><code>library (signal)</code></pre>
-<pre><code>## 
-## Attaching package: 'signal'
-## 
-## The following objects are masked from 'package:stats':
-## 
-##     filter, poly</code></pre>
-<pre class="r"><code>c &lt;- 0.1
+<pre class="r"><code>library (signal)
+c &lt;- 0.1
 x3 &lt;- as.vector (filter (filt=c(c), a=c(1,c-1), x=x1))
 
 ans &lt;- isIID (x=x3)
@@ -290,6 +285,7 @@ if (ans$reject) {
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
 <p>We have identified scenarios where one test succeeds and the other fails. One can use the present permutation test and the Ljung-Box test together by simply rejecting the null hypothesis if either test rejects it.</p>
+<hr />
 <div class="references">
 <h1>References</h1>
 <p>[1]Paul Bratley, Bennett L. Fox, and Linus E. Schrage, <em>A guide to simulation</em>, Second. Springer-Verlag, 1987.</p>

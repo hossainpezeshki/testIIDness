@@ -7,6 +7,8 @@ bibliography: bibliography.bib
 csl: ieee-transactions-on-information-theory.csl
 ---
 
+***
+
 # Prompt #
 Bratley et al. on page 220 of @guidetosim describe what they call a "_permutation test_" for verifying independence
 of a uniform pseudo-random sequence. This method is actually applicable to any continuous distribution,
@@ -14,6 +16,8 @@ not just the uniform distribution.
 We describe the procedure and implement our version of it in R @theRlang.
 We also compare the performance of the test versus the better known "_Ljung-Box Test_" (see
 for example pages 206ff of @ruppertfinance).
+
+***
 
 # Description #
 Let $\underline{x} = [x_1, x_2,\ldots, x_l]$ be independently sampled from a continuous distribution 
@@ -76,6 +80,8 @@ Substituting $p = (l\,!)^{-1}$ and $B={N}/{l}$ into expression (@relerr) we obta
 We found that we have the best power against the alternative when $l$ is the largest
 number satisfying inequality (@bestl). 
 
+***
+
 # R implementation #
 The function `isIID` implements the procedure discussed above.
 
@@ -99,8 +105,7 @@ isIID <- function (x, CL=0.95)  {
   ans <- bestPerBin (N=N)
   
   lu <- defmacro (j, b, expr={
-    l = b*(j-1)+1; u = b*j;
-    c(l:u)
+    c((b*(j-1)+1):(b*j));
   })
   
   counts <- list()
@@ -244,10 +249,11 @@ sprintf ("p-value %.4f", ans$p.val)
 
 print (Box.test (x4, lag=1, type='Ljung'))
 ```
-
 # Conclusion #
 We have identified scenarios where one test succeeds and the other fails.
 One can use the present permutation test and the Ljung-Box test together by simply rejecting
 the null hypothesis if either test rejects it.
+
+***
 
 # References #
